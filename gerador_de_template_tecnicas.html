@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Fichas de Técnica - JJK RPG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap');
+        body { background-color: #0c0c1a; background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'); color: #dcdcdc; font-family: Arial, Helvetica, sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; background: #1a1a2e; padding: 20px; border-radius: 8px; border: 1px solid #9b00ff; }
+        h1, h2, h3 { font-family: 'Yuji Syuku', serif; color: #ffffff; text-align: center; border-bottom: 1px solid #9b00ff; padding-bottom: 10px; margin-top: 30px; }
+        h1 { margin-top: 0; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #c48fff; }
+        input[type="text"], textarea { width: calc(100% - 18px); background-color: #101021; border: 1px solid #3c00b0; color: #dcdcdc; padding: 8px; border-radius: 5px; font-size: 14px; }
+        textarea { height: 100px; resize: vertical; }
+        button { display: inline-block; width: auto; padding: 12px 20px; margin-top: 20px; font-family: 'Yuji Syuku', serif; font-size: 18px; border-radius: 5px; border: 1px solid #ff4ae0; background-color: #9b00ff; color: white; cursor: pointer; transition: all 0.3s ease; }
+        button:hover { background-color: #ff4ae0; box-shadow: 0 0 10px #ff4ae0; }
+        .action-button { background-color: #008a45; border-color: #00ff8c; }
+        .action-button:hover { background-color: #00ff8c; color: #0c0c1a; box-shadow: 0 0 10px #00ff8c; }
+        .remove-spell-button { background-color: #8A0303; border-color: #ff1f1f; float: right; }
+        .remove-spell-button:hover { background-color: #ff1f1f; box-shadow: 0 0 10px #ff1f1f; }
+        #outputCode { width: calc(100% - 18px); height: 200px; }
+        .spell-block { background: #101021; padding: 15px; margin-top: 15px; border-radius: 5px; border-left: 3px solid #c48fff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gerador de Fichas de Técnica</h1>
+
+        <h2>Informações da Técnica Principal</h2>
+        <label for="techName">Nome da Técnica:</label>
+        <input type="text" id="techName" placeholder="Ex: Boogie Woogie">
+        <label for="techImage">URL da Imagem da Técnica (Banner Horizontal):</label>
+        <input type="text" id="techImage" placeholder="https://i.imgur.com/imagem.png">
+        <label for="techDesc">Descrição da Técnica:</label>
+        <textarea id="techDesc"></textarea>
+        <label for="techBasic">Funcionamento Básico:</label>
+        <textarea id="techBasic"></textarea>
+
+        <h2>Feitiços Vinculados</h2>
+        <div id="spells-container">
+            <!-- Os formulários de feitiços aparecerão aqui -->
+        </div>
+        <button class="action-button" onclick="addSpell()">Adicionar Feitiço</button>
+        
+        <hr style="border-color: #3c00b0; margin-top: 30px;">
+
+        <button onclick="generateCode()">Gerar Código do Template</button>
+        <h2>Código Gerado (Pronto para Colar no Fórum)</h2>
+        <textarea id="outputCode" readonly></textarea>
+        <button class="action-button" onclick="copyCode()">Copiar Código</button>
+    </div>
+
+    <!-- Template escondido para um novo feitiço -->
+    <div id="spell-template" style="display: none;">
+        <div class="spell-block">
+            <h3>Novo Feitiço <button class="remove-spell-button" onclick="this.parentElement.parentElement.remove()">Remover</button></h3>
+            <label>Nome do Feitiço:</label><input type="text" class="spell-name">
+            <label>URL da Imagem (Vertical):</label><input type="text" class="spell-image-url">
+            <label>Tipo:</label><input type="text" class="spell-type">
+            <label>Requisitos:</label><input type="text" class="spell-req">
+            <label>Alcance:</label><input type="text" class="spell-range">
+            <label>Custo:</label><input type="text" class="spell-cost">
+            <label>Efeito (pode ter quebras de linha):</label><textarea class="spell-effect" style="height: 120px;"></textarea>
+            <label>Regras (uma por linha, sem o traço inicial):</label><textarea class="spell-rules" style="height: 120px;"></textarea>
+        </div>
+    </div>
+
+    <script>
+        function addSpell() {
+            const template = document.getElementById('spell-template');
+            const clone = template.firstElementChild.cloneNode(true);
+            document.getElementById('spells-container').appendChild(clone);
+        }
+
+        function generateCode() {
+            const techName = document.getElementById('techName').value;
+            const techImage = document.getElementById('techImage').value;
+            const techDesc = document.getElementById('techDesc').value.replace(/\n/g, '<br>');
+            const techBasic = document.getElementById('techBasic').value.replace(/\n/g, '<br>');
+            
+            let spellsHtml = '';
+            const spellBlocks = document.querySelectorAll('#spells-container .spell-block');
+
+            spellBlocks.forEach(block => {
+                const name = block.querySelector('.spell-name').value;
+                const image = block.querySelector('.spell-image-url').value;
+                const type = block.querySelector('.spell-type').value;
+                const req = block.querySelector('.spell-req').value;
+                const range = block.querySelector('.spell-range').value;
+                const cost = block.querySelector('.spell-cost').value;
+                const effect = block.querySelector('.spell-effect').value.replace(/\n/g, '<br>');
+                const rules = block.querySelector('.spell-rules').value.split('\n').filter(line => line.trim() !== '').map(line => `<li>${line.trim()}</li>`).join('');
+
+                spellsHtml += `<div class="spell-card"><div class="spell-image"><img src="${image}"></div><div class="spell-details"><div class="spell-header">${name}</div><b>Tipo:</b> ${type}<br><b>Requisitos:</b> ${req}<br><b>Alcance:</b> ${range}<br><b>Custo:</b> ${cost}<br><b>Efeito:</b> ${effect}<br><br><b>Regras:</b><ul class="details-list">${rules}</ul></div></div>`;
+            });
+
+            const finalCode = `<!-- CÓDIGO DO TEMPLATE DE TÉCNICA GERADO AUTOMATICAMENTE - COMEÇO --><div style="position:relative;max-width:720px;width:90%;margin:12px auto;font-size:14px;line-height:1.4;background:#0c0c1a;border-radius:10px;padding:16px;"><div class="technique-banner"><img src="${techImage}"></div><div style="position:relative;"><div class="main-title"><span class="gradient-text">${techName}</span><div class="particles-container"><div class="particle particle-1"></div><div class="particle particle-2"></div><div class="particle particle-3"></div><div class="particle particle-4"></div><div class="particle particle-5"></div><div class="particle particle-6"></div><div class="particle particle-7"></div><div class="particle particle-8"></div><div class="particle particle-9"></div><div class="particle particle-10"></div></div></div><div class="content-text">${techDesc}</div><hr class="glowing-hr"><div class="subtitle">Funcionamento Básico</div><div class="content-text">${techBasic}</div><div class="subtitle">Feitiços Vinculados</div><div class="spoiler-btn">Clique para revelar os Feitiços</div><div class="spoiler-content" style="display:none;">${spellsHtml.trim()}</div></div></div><!-- CÓDIGO DO TEMPLATE DE TÉCNICA AMALDIÇOADA - FIM -->`;
+
+            const minifiedCode = finalCode.replace(/(\r\n|\n|\r)/gm, "").replace(/>\s+</g, "><").trim();
+            document.getElementById('outputCode').value = minifiedCode;
+        }
+
+        function copyCode() {
+            const outputCode = document.getElementById('outputCode');
+            if(outputCode.value) {
+                outputCode.select();
+                document.execCommand('copy');
+                alert('Código copiado para a área de transferência!');
+            } else {
+                alert('Gere o código primeiro!');
+            }
+        }
+        
+        // Adiciona um bloco de feitiço inicial para o usuário ver como funciona
+        addSpell();
+    </script>
+</body>
+</html>
